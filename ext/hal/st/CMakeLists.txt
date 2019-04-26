@@ -1,2 +1,3 @@
 add_subdirectory_ifdef(CONFIG_HAS_STM32CUBE stm32cube)
 add_subdirectory_ifdef(CONFIG_HAS_STLIB lib)
+add_subdirectory_ifdef(CONFIG_IEEE802154_S2LP stm32cube_subg1/s2lp)
