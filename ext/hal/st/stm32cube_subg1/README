@@ -34,3 +34,7 @@ License:
 License Link:
    http://www.st.com/resource/en/license_agreement/dm00218346.pdf
 
+Patch List:
+
+   *Removed unneeded S2LP_Util.h include from s2lp MCU_Interface.h file.
+
