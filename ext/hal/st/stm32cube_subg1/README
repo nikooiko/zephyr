@@ -38,3 +38,6 @@ Patch List:
 
    *Removed unneeded S2LP_Util.h include from s2lp MCU_Interface.h file.
 
+   *Fixed warnings for parentheses around arithmetic operation
+     Impacted files:
+      s2lp/S2LP_Library/Src/S2LP_PacketHandler.c
