@@ -64,3 +64,10 @@ tests:
     extra_args: OVERLAY_CONFIG="overlay-smsc911x.conf"
     tags: net
     platform_whitelist: mps2_an385
+  sample.net.sockets.echo_server.smsc911x:
+    extra_args: OVERLAY_CONFIG="overlay-s2868a1.conf"
+    tags: net
+    platform_whitelist: mps2_an385
+  sample.net.sockets.echo_server.s2lp:
+    extra_args: OVERLAY_CONFIG="overlay-s2868a1.conf"
+    tags: net

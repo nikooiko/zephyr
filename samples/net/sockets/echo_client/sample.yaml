@@ -35,3 +35,6 @@ tests:
     extra_args: OVERLAY_CONFIG="overlay-enc28j60.conf"
     tags: net enc28j60
     platform_whitelist: arduino_101
+  sample.net.sockets.echo_client.s2lp:
+    extra_args: OVERLAY_CONFIG="overlay-s2868a1.conf"
+    tags: net
