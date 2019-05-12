@@ -1,0 +1,32 @@
+#
+# Copyright (c) 2019 Nikos Oikonomou <nikoikonomou92@gmail.com>
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+title: ST S2LP 802.15.4 Wireless Transceiver
+version: 0.1
+
+description: >
+    This is a representation of the S2LP wireless transceiver.
+
+inherits:
+    !include spi-device.yaml
+
+properties:
+    compatible:
+      type: string
+      category: required
+      description: compatible strings
+      constraint: "st,s2lp"
+
+    sdn-gpios:
+      type: compound
+      category: required
+      generation: define, use-prop-name
+
+    rx-rdy-irq-gpios:
+      type: compound
+      category: required
+      generation: define, use-prop-name
+...
