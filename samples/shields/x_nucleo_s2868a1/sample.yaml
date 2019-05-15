@@ -1,0 +1,7 @@
+sample:
+  name: X-NUCLEO-S2868A1 sensor shield
+tests:
+  sample.shields.x_nucleo_s2868a1:
+    harness: shield
+    tags: shield
+    depends_on: arduino_spi
