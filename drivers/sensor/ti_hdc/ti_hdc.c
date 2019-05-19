@@ -18,6 +18,7 @@
 #define LOG_LEVEL CONFIG_SENSOR_LOG_LEVEL
 LOG_MODULE_REGISTER(TI_HDC);
 
+#if defined(DT_TI_HDC_0_DRDY_GPIOS_CONTROLLER)
 static void ti_hdc_gpio_callback(struct device *dev,
 				  struct gpio_callback *cb, u32_t pins)
 {
@@ -29,6 +30,7 @@ static void ti_hdc_gpio_callback(struct device *dev,
 	gpio_pin_disable_callback(dev, DT_TI_HDC_0_DRDY_GPIOS_PIN);
 	k_sem_give(&drv_data->data_sem);
 }
+#endif
 
 static int ti_hdc_sample_fetch(struct device *dev, enum sensor_channel chan)
 {
@@ -37,8 +39,9 @@ static int ti_hdc_sample_fetch(struct device *dev, enum sensor_channel chan)
 
 	__ASSERT_NO_MSG(chan == SENSOR_CHAN_ALL);
 
-	gpio_pin_enable_callback(drv_data->gpio,
-				 DT_TI_HDC_0_DRDY_GPIOS_PIN);
+#if defined(DT_TI_HDC_0_DRDY_GPIOS_CONTROLLER)
+	gpio_pin_enable_callback(drv_data->gpio, DT_TI_HDC_0_DRDY_GPIOS_PIN);
+#endif
 
 	buf[0] = TI_HDC_REG_TEMP;
 	if (i2c_write(drv_data->i2c, buf, 1,
@@ -47,7 +50,12 @@ static int ti_hdc_sample_fetch(struct device *dev, enum sensor_channel chan)
 		return -EIO;
 	}
 
+#if defined(DT_TI_HDC_0_DRDY_GPIOS_CONTROLLER)
 	k_sem_take(&drv_data->data_sem, K_FOREVER);
+#else
+	/* wait for the conversion to finish */
+	k_sleep(HDC_CONVERSION_TIME);
+#endif
 
 	if (i2c_read(drv_data->i2c, buf, 4, DT_TI_HDC_0_BASE_ADDRESS) < 0) {
 		LOG_DBG("Failed to read sample data");
@@ -62,8 +70,8 @@ static int ti_hdc_sample_fetch(struct device *dev, enum sensor_channel chan)
 
 
 static int ti_hdc_channel_get(struct device *dev,
-			       enum sensor_channel chan,
-			       struct sensor_value *val)
+			      enum sensor_channel chan,
+			      struct sensor_value *val)
 {
 	struct ti_hdc_data *drv_data = dev->driver_data;
 	u64_t tmp;
@@ -80,11 +88,10 @@ static int ti_hdc_channel_get(struct device *dev,
 		val->val2 = ((tmp & 0xFFFF) * 1000000U) >> 16;
 	} else if (chan == SENSOR_CHAN_HUMIDITY) {
 		/* val = 100 * sample / 2^16 */
-		u32_t tmp2;
-		tmp2 = (u32_t)drv_data->rh_sample * 100U;
-		val->val1 = tmp2 >> 16;
+		tmp = (u64_t)drv_data->rh_sample * 100U;
+		val->val1 = tmp >> 16;
 		/* x * 1000000 / 65536 == x * 15625 / 1024 */
-		val->val2 = ((tmp2 & 0xFFFF) * 15625U) >> 10;
+		val->val2 = ((tmp & 0xFFFF) * 15625U) >> 10;
 	} else {
 		return -ENOTSUP;
 	}
@@ -109,6 +116,7 @@ static u16_t read16(struct device *dev, u8_t a, u8_t d)
 static int ti_hdc_init(struct device *dev)
 {
 	struct ti_hdc_data *drv_data = dev->driver_data;
+	u16_t tmp;
 
 	drv_data->i2c = device_get_binding(DT_TI_HDC_0_BUS_NAME);
 
@@ -123,12 +131,14 @@ static int ti_hdc_init(struct device *dev)
 		LOG_ERR("Failed to get correct manufacturer ID");
 		return -EINVAL;
 	}
-	if (read16(drv_data->i2c, DT_TI_HDC_0_BASE_ADDRESS,
-		   TI_HDC_REG_DEVICEID) != TI_HDC_DEVICEID) {
-		LOG_ERR("Failed to get correct device ID");
+	tmp = read16(drv_data->i2c, DT_TI_HDC_0_BASE_ADDRESS,
+		     TI_HDC_REG_DEVICEID);
+	if (tmp != TI_HDC1000_DEVID && tmp != TI_HDC1050_DEVID) {
+		LOG_ERR("Unsupported device ID");
 		return -EINVAL;
 	}
 
+#if defined(DT_TI_HDC_0_DRDY_GPIOS_CONTROLLER)
 	k_sem_init(&drv_data->data_sem, 0, UINT_MAX);
 
 	/* setup data ready gpio interrupt */
@@ -155,6 +165,9 @@ static int ti_hdc_init(struct device *dev)
 		LOG_DBG("Failed to set GPIO callback");
 		return -EIO;
 	}
+#endif
+
+	LOG_INF("Initialized device successfully");
 
 	return 0;
 }
