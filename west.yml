@@ -72,7 +72,7 @@ manifest:
       revision: 6bb4a17a2f94a39eba295dd55dbeae6f6c4c9b1b
       path: modules/hal/silabs
     - name: hal_st
-      revision: b52fdbf4b62439be9fab9bb4bae9690a42d2fb14
+      revision: 44d5d70b09aeae37c225526e46baa06b5fc79885
       path: modules/hal/st
     - name: hal_stm32
       revision: cc8731dba4fd9c57d7fe8ea6149828b89c2bd635
